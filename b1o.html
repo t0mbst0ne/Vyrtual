@@ -71,6 +71,28 @@
 
   .description p { margin: 10px 0; }
 
+  .audio-controls {
+    margin-top: 20px;
+    z-index: 10;
+    position: relative;
+  }
+
+  .audio-controls button {
+    background: white;
+    color: black;
+    border: none;
+    padding: 10px 20px;
+    font-size: 1em;
+    cursor: pointer;
+    border-radius: 5px;
+    margin: 0 10px;
+    transition: 0.2s;
+  }
+
+  .audio-controls button:hover {
+    background: #ddd;
+  }
+
   @keyframes pulse {
     0%, 100% { box-shadow: 0 0 20px white, 0 0 40px white, 0 0 60px white; }
     50% { box-shadow: 0 0 30px white, 0 0 60px white, 0 0 90px white; }
@@ -97,9 +119,14 @@
     <p>I Do CSS and HTML And A Little Bit Of Javascript Just Using AI. Yes, AI.</p>
     <p>I Love AI They Do My Job.</p>
   </div>
+
+  <div class="audio-controls">
+    <button id="playBtn">Play</button>
+    <button id="stopBtn">Stop</button>
+  </div>
 </div>
 
-<audio id="bgMusic" autoplay loop>
+<audio id="bgMusic" loop>
   <source src="https://t0mbst0ne.github.io/Vyrtual/AIHB.mp3" type="audio/mpeg">
 </audio>
 
@@ -183,18 +210,20 @@ function drawVisualizer() {
   requestAnimationFrame(drawVisualizer);
 }
 
-// Force audio play
-function playAudio() {
-  audioContext.resume().then(() => {
-    bgMusic.play().then(() => {
-      drawVisualizer();
-    }).catch(() => {
-      document.addEventListener('click', () => bgMusic.play(), { once: true });
-    });
-  });
-}
+// Play / Stop buttons
+const playBtn = document.getElementById('playBtn');
+const stopBtn = document.getElementById('stopBtn');
 
-window.addEventListener('load', playAudio);
+playBtn.addEventListener('click', () => {
+    audioContext.resume().then(() => {
+        bgMusic.play();
+        drawVisualizer();
+    });
+});
+
+stopBtn.addEventListener('click', () => {
+    bgMusic.pause();
+});
 </script>
 </body>
 </html>
