@@ -194,36 +194,30 @@ const bufferLength = analyser.frequencyBinCount;
 const dataArray = new Uint8Array(bufferLength);
 
 let rainbowOffset = 0;
-let rainbowFade = false;
 
 function drawVisualizer() {
     analyser.getByteFrequencyData(dataArray);
     visCtx.clearRect(0, 0, visCanvas.width, visCanvas.height);
 
-    // Check if song reached 0:55
-    if (bgMusic.currentTime >= 55 && !rainbowFade) {
-        rainbowFade = true;
-    }
+    // Determine visualizer color based on time
+    let rainbowFade = (bgMusic.currentTime >= 55 && bgMusic.currentTime < 76);
 
     const barWidth = (visCanvas.width / bufferLength) * 2;
     let x = 0;
 
     for (let i = 0; i < bufferLength; i++) {
         const barHeight = dataArray[i];
-
-        // Decide color
         let color = 'white';
         if (rainbowFade) {
             const hue = ((i * 360 / bufferLength) + rainbowOffset) % 360;
             color = `hsl(${hue}, 100%, 50%)`;
         }
-
         visCtx.fillStyle = color;
         visCtx.fillRect(x, visCanvas.height - barHeight / 2, barWidth, barHeight / 2);
         x += barWidth + 1;
     }
 
-    // Scroll rainbow to the right
+    // Scroll rainbow only during rainbow phase
     if (rainbowFade) rainbowOffset += 2;
 
     requestAnimationFrame(drawVisualizer);
