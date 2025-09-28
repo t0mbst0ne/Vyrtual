@@ -193,21 +193,40 @@ analyser.fftSize = 256;
 const bufferLength = analyser.frequencyBinCount;
 const dataArray = new Uint8Array(bufferLength);
 
+let rainbowOffset = 0;
+let rainbowFade = false;
+
 function drawVisualizer() {
-  analyser.getByteFrequencyData(dataArray);
-  visCtx.clearRect(0, 0, visCanvas.width, visCanvas.height);
+    analyser.getByteFrequencyData(dataArray);
+    visCtx.clearRect(0, 0, visCanvas.width, visCanvas.height);
 
-  const barWidth = (visCanvas.width / bufferLength) * 2;
-  let x = 0;
+    // Check if song reached 0:55
+    if (bgMusic.currentTime >= 55 && !rainbowFade) {
+        rainbowFade = true;
+    }
 
-  for (let i = 0; i < bufferLength; i++) {
-    const barHeight = dataArray[i];
-    visCtx.fillStyle = 'white';
-    visCtx.fillRect(x, visCanvas.height - barHeight / 2, barWidth, barHeight / 2);
-    x += barWidth + 1;
-  }
+    const barWidth = (visCanvas.width / bufferLength) * 2;
+    let x = 0;
 
-  requestAnimationFrame(drawVisualizer);
+    for (let i = 0; i < bufferLength; i++) {
+        const barHeight = dataArray[i];
+
+        // Decide color
+        let color = 'white';
+        if (rainbowFade) {
+            const hue = ((i * 360 / bufferLength) + rainbowOffset) % 360;
+            color = `hsl(${hue}, 100%, 50%)`;
+        }
+
+        visCtx.fillStyle = color;
+        visCtx.fillRect(x, visCanvas.height - barHeight / 2, barWidth, barHeight / 2);
+        x += barWidth + 1;
+    }
+
+    // Scroll rainbow to the right
+    if (rainbowFade) rainbowOffset += 2;
+
+    requestAnimationFrame(drawVisualizer);
 }
 
 // Play / Stop buttons
