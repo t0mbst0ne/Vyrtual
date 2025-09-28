@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vyrtual</title>
+<link rel="icon" href="https://cdn.pfps.gg/pfps/2554-dark-moon.png" type="image/png">
+<style>
+  body {
+    margin: 0;
+    padding: 0;
+    background: #000;
+    color: #fff;
+    font-family: Arial, sans-serif;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    flex-direction: column;
+    text-align: center;
+  }
+
+  canvas { position: fixed; top: 0; left: 0; }
+  #meteorCanvas { z-index: 0; }
+  #audioVisualizer { z-index: 5; }
+
+  .content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 10;
+    position: relative;
+  }
+
+  .profile-circle {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    border: 4px solid white;
+    box-shadow: 0 0 20px white, 0 0 40px white, 0 0 60px white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+    overflow: hidden;
+    animation: pulse 2s infinite ease-in-out;
+  }
+
+  .profile-circle img { width: 100%; height: 100%; object-fit: cover; }
+
+  h1 {
+    font-size: 3em;
+    text-shadow: 0 0 15px #fff;
+    margin: 0;
+    opacity: 0;
+    animation: fadeIn 1s forwards;
+    animation-delay: 0.5s;
+  }
+
+  .description {
+    margin-top: 20px;
+    line-height: 1.5em;
+    font-size: 1.1em;
+    text-shadow: 0 0 10px white;
+    max-width: 700px;
+    opacity: 0;
+    animation: fadeIn 1s forwards;
+    animation-delay: 1.5s;
+  }
+
+  .description p { margin: 10px 0; }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 20px white, 0 0 40px white, 0 0 60px white; }
+    50% { box-shadow: 0 0 30px white, 0 0 60px white, 0 0 90px white; }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="meteorCanvas"></canvas>
+<canvas id="audioVisualizer"></canvas>
+
+<div class="content">
+  <div class="profile-circle">
+    <img src="https://cdn.pfps.gg/pfps/6229-megumi-black-and-white.png" alt="Profile Image">
+  </div>
+  <h1>Vyrtual</h1>
+  <div class="description">
+    <p>Hello! I Am Vyrtual, A Web Designer Only Using AI Because Im A Lazy Ass Person. Add Me If You Want.</p>
+    <p>I Do CSS and HTML And A Little Bit Of Javascript Just Using AI. Yes, AI.</p>
+    <p>I Love AI They Do My Job.</p>
+  </div>
+</div>
+
+<audio id="bgMusic" loop>
+  <source src="https://raw.githubusercontent.com/USERNAME/REPO/main/AIHB.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+// Meteor animation
+const canvas = document.getElementById('meteorCanvas');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+class Meteor {
+  constructor() { this.reset(); }
+  reset() {
+    this.x = Math.random() * -100;
+    this.y = Math.random() * canvas.height;
+    this.length = 20 + Math.random() * 30;
+    this.speed = 4 + Math.random() * 4;
+    this.opacity = 0.7 + Math.random() * 0.3;
+  }
+  draw() {
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(this.x, this.y);
+    ctx.lineTo(this.x + this.length, this.y);
+    ctx.strokeStyle = `rgba(255,255,255,${this.opacity})`;
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = 'white';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.restore();
+  }
+  update() {
+    this.x += this.speed;
+    this.opacity -= 0.005;
+    if (this.x > canvas.width || this.opacity <= 0) this.reset();
+  }
+}
+
+const meteors = [];
+setInterval(() => meteors.push(new Meteor()), 1000);
+
+function animate() {
+  ctx.fillStyle = 'rgba(0,0,0,0.2)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  meteors.forEach(m => { m.draw(); m.update(); });
+  requestAnimationFrame(animate);
+}
+animate();
+window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
+
+// Audio visualizer
+const bgMusic = document.getElementById('bgMusic');
+const visCanvas = document.getElementById('audioVisualizer');
+const visCtx = visCanvas.getContext('2d');
+visCanvas.width = window.innerWidth;
+visCanvas.height = 200;
+
+const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+const analyser = audioContext.createAnalyser();
+const source = audioContext.createMediaElementSource(bgMusic);
+source.connect(analyser);
+analyser.connect(audioContext.destination);
+analyser.fftSize = 256;
+const bufferLength = analyser.frequencyBinCount;
+const dataArray = new Uint8Array(bufferLength);
+
+function drawVisualizer() {
+  analyser.getByteFrequencyData(dataArray);
+  visCtx.clearRect(0, 0, visCanvas.width, visCanvas.height);
+
+  const barWidth = (visCanvas.width / bufferLength) * 2;
+  let x = 0;
+
+  for (let i = 0; i < bufferLength; i++) {
+    const barHeight = dataArray[i];
+    visCtx.fillStyle = 'white';
+    visCtx.fillRect(x, visCanvas.height - barHeight / 2, barWidth, barHeight / 2);
+    x += barWidth + 1;
+  }
+
+  requestAnimationFrame(drawVisualizer);
+}
+
+// Force audio play
+function playAudio() {
+  audioContext.resume().then(() => {
+    bgMusic.play().then(() => {
+      drawVisualizer();
+    }).catch(() => {
+      document.addEventListener('click', () => bgMusic.play(), { once: true });
+    });
+  });
+}
+
+window.addEventListener('load', playAudio);
+</script>
+</body>
+</html>
